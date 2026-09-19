@@ -48,29 +48,43 @@ function App() {
     return "Sorry, I do not understand that yet. Please ask about YMCA history, programs, global impact, modern YMCA, hours, membership, or location.";
   };
 
-  const sendMessage = (customMessage) => {
-    const messageText = customMessage || input;
+  const sendMessage = async (customMessage) => {
+  const messageText = customMessage || input;
 
-    if (messageText.trim() === "") return;
+  if (messageText.trim() === "") return;
 
-    const userMessage = {
-      sender: "user",
-      text: messageText
-    };
+  const userMessage = {
+    sender: "user",
+    text: messageText
+  };
+
+  setMessages((previousMessages) => [...previousMessages, userMessage]);
+
+  try {
+    const response = await axios.post(
+      "https://ymca-chatbot-project.onrender.com/api/chat",
+      {
+        message: messageText
+      }
+    );
 
     const botMessage = {
       sender: "bot",
-      text: getBotReply(messageText)
+      text: response.data.reply
     };
 
-    setMessages((previousMessages) => [
-      ...previousMessages,
-      userMessage,
-      botMessage
-    ]);
+    setMessages((previousMessages) => [...previousMessages, botMessage]);
+  } catch (error) {
+    const errorMessage = {
+      sender: "bot",
+      text: "Sorry, I could not connect to the backend server."
+    };
 
-    setInput("");
-  };
+    setMessages((previousMessages) => [...previousMessages, errorMessage]);
+  }
+
+  setInput("");
+};
 
   const topics = [
     {
